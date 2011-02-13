@@ -49,7 +49,7 @@
 }
 
 //=============================================================================================================================
-#pragma mark TwitterEngineDelegate
+#pragma mark MGTwitterEngineDelegate
 - (void) requestSucceeded: (NSString *) requestIdentifier {
 	NSLog(@"Request %@ succeeded", requestIdentifier);
 }
@@ -58,7 +58,30 @@
 	NSLog(@"Request %@ failed with error: %@", requestIdentifier, error);
 }
 
+- (void)statusesReceived:(NSArray *)statuses forRequest:(NSString *)connectionIdentifier {
+	NSLog(@"statusesReceived");
+}
 
+- (void)directMessagesReceived:(NSArray *)messages forRequest:(NSString *)connectionIdentifier {
+	NSLog(@"directMessagesReceived");
+}
+
+- (void)userInfoReceived:(NSArray *)userInfo forRequest:(NSString *)connectionIdentifier {
+	NSLog(@"userInfoReceived");
+}
+
+- (void)miscInfoReceived:(NSArray *)miscInfo forRequest:(NSString *)connectionIdentifier {
+	NSLog(@"miscInfoReceived");
+}
+
+- (void)imageReceived:(UIImage *)image forRequest:(NSString *)connectionIdentifier {
+	NSLog(@"imageReceived");
+}
+
+// This delegate method is called whenever a connection has finished.
+- (void)connectionFinished:(NSString *)connectionIdentifier {
+	NSLog(@"connectionFinished");
+}
 
 //=============================================================================================================================
 #pragma mark ViewController Stuff
