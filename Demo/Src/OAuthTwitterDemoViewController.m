@@ -30,6 +30,10 @@
 	return [[NSUserDefaults standardUserDefaults] objectForKey: @"authData"];
 }
 
+- (void) twitterOAuthConnectionFailedWithData: (NSData *) data {
+	NSLog(@"twitterOAuthConnectionFailedWithData");
+}
+
 //=============================================================================================================================
 #pragma mark SA_OAuthTwitterControllerDelegate
 - (void) OAuthTwitterController: (SA_OAuthTwitterController *) controller authenticatedWithUsername: (NSString *) username {
