@@ -219,7 +219,7 @@ static NSString* const kGGTwitterLoadingBackgroundImage = @"twitter_load.png";
 	_loading = NO;
 	//[self performInjection];
 	if (_firstLoad) {
-		[_webView performSelector: @selector(stringByEvaluatingJavaScriptFromString:) withObject: @"window.scrollBy(0,200)" afterDelay: 0];
+		//[_webView performSelector: @selector(stringByEvaluatingJavaScriptFromString:) withObject: @"window.scrollBy(0,200)" afterDelay: 0];
 		_firstLoad = NO;
 	} else {
 		NSString					*authPin = [self locateAuthPinInWebView: webView];
