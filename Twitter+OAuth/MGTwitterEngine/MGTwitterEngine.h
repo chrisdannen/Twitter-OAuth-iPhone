@@ -85,23 +85,28 @@
 
 // Status methods
 
-- (NSString *)getPublicTimeline; // statuses/public_timeline
+- (NSString *)getPublicTimeline;	// statuses/public_timeline
+- (NSString *)getHomeTimeline;		// statuses/home_timeline
+- (NSString *)getUserTimeline;		// statuses/user_timeline
 
-- (NSString *)getFollowedTimelineSinceID:(unsigned long)sinceID startingAtPage:(int)pageNum count:(int)count; // statuses/friends_timeline
-- (NSString *)getFollowedTimelineSinceID:(unsigned long)sinceID withMaximumID:(unsigned long)maxID startingAtPage:(int)pageNum count:(int)count; // statuses/friends_timeline
+- (NSString *)getMentions;			// statuses/mentions
 
-- (NSString *)getUserTimelineFor:(NSString *)username sinceID:(unsigned long)sinceID startingAtPage:(int)pageNum count:(int)count; // statuses/user_timeline & statuses/user_timeline/user
-- (NSString *)getUserTimelineFor:(NSString *)username sinceID:(unsigned long)sinceID withMaximumID:(unsigned long)maxID startingAtPage:(int)pageNum count:(int)count; // statuses/user_timeline & statuses/user_timeline/user
+- (NSString *)getFollowedTimelineSinceID:(NSString *)sinceID startingAtPage:(int)pageNum count:(int)count; // statuses/friends_timeline
+- (NSString *)getFollowedTimelineSinceID:(NSString *)sinceID withMaximumID:(NSString *)maxID startingAtPage:(int)pageNum count:(int)count; // statuses/friends_timeline
 
-- (NSString *)getUpdate:(unsigned long)updateID; // statuses/show
+- (NSString *)getUserTimelineFor:(NSString *)username sinceID:(NSString *)sinceID startingAtPage:(int)pageNum count:(int)count; // statuses/user_timeline & statuses/user_timeline/user
+- (NSString *)getUserTimelineFor:(NSString *)username sinceID:(NSString *)sinceID withMaximumID:(NSString *)maxID startingAtPage:(int)pageNum count:(int)count; // statuses/user_timeline & statuses/user_timeline/user
+
+- (NSString *)getUpdate:(NSString *)updateID; // statuses/show
 - (NSString *)sendUpdate:(NSString *)status; // statuses/update
-- (NSString *)sendUpdate:(NSString *)status inReplyTo:(unsigned long)updateID; // statuses/update
+- (NSString *)sendUpdate:(NSString *)status inReplyTo:(NSString *)updateID; // statuses/update
+- (NSString *)retweetUpdate:(NSString *)updateID;
 
 - (NSString *)getRepliesStartingAtPage:(int)pageNum; // statuses/mentions
-- (NSString *)getRepliesSinceID:(unsigned long)sinceID startingAtPage:(int)pageNum count:(int)count; // statuses/mentions
-- (NSString *)getRepliesSinceID:(unsigned long)sinceID withMaximumID:(unsigned long)maxID startingAtPage:(int)pageNum count:(int)count; // statuses/mentions
+- (NSString *)getRepliesSinceID:(NSString *)sinceID startingAtPage:(int)pageNum count:(int)count; // statuses/mentions
+- (NSString *)getRepliesSinceID:(NSString *)sinceID withMaximumID:(NSString *)maxID startingAtPage:(int)pageNum count:(int)count; // statuses/mentions
 
-- (NSString *)deleteUpdate:(unsigned long)updateID; // statuses/destroy
+- (NSString *)deleteUpdate:(NSString *)updateID; // statuses/destroy
 
 - (NSString *)getFeaturedUsers; // statuses/features (undocumented, returns invalid JSON data)
 
@@ -118,14 +123,14 @@
 
 // Direct Message methods
 
-- (NSString *)getDirectMessagesSinceID:(unsigned long)sinceID startingAtPage:(int)pageNum; // direct_messages
-- (NSString *)getDirectMessagesSinceID:(unsigned long)sinceID withMaximumID:(unsigned long)maxID startingAtPage:(int)pageNum count:(int)count; // direct_messages
+- (NSString *)getDirectMessagesSinceID:(NSString *)sinceID startingAtPage:(int)pageNum; // direct_messages
+- (NSString *)getDirectMessagesSinceID:(NSString *)sinceID withMaximumID:(NSString *)maxID startingAtPage:(int)pageNum count:(int)count; // direct_messages
 
-- (NSString *)getSentDirectMessagesSinceID:(unsigned long)sinceID startingAtPage:(int)pageNum; // direct_messages/sent
-- (NSString *)getSentDirectMessagesSinceID:(unsigned long)sinceID withMaximumID:(unsigned long)maxID startingAtPage:(int)pageNum count:(int)count; // direct_messages/sent
+- (NSString *)getSentDirectMessagesSinceID:(NSString *)sinceID startingAtPage:(int)pageNum; // direct_messages/sent
+- (NSString *)getSentDirectMessagesSinceID:(NSString *)sinceID withMaximumID:(NSString *)maxID startingAtPage:(int)pageNum count:(int)count; // direct_messages/sent
 
 - (NSString *)sendDirectMessage:(NSString *)message to:(NSString *)username; // direct_messages/new
-- (NSString *)deleteDirectMessage:(unsigned long)updateID;// direct_messages/destroy
+- (NSString *)deleteDirectMessage:(NSString *)updateID;// direct_messages/destroy
 
 
 // Friendship methods

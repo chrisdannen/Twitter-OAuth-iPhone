@@ -925,25 +925,51 @@
                            responseType:MGTwitterStatuses];
 }
 
+- (NSString *)getHomeTimeline
+{
+    NSString *path = [NSString stringWithFormat:@"statuses/home_timeline.%@", API_FORMAT];
+    
+	return [self _sendRequestWithMethod:nil path:path queryParameters:nil body:nil 
+                            requestType:MGTwitterPublicTimelineRequest 
+                           responseType:MGTwitterStatuses];
+}
+
+- (NSString *)getUserTimeline
+{
+    NSString *path = [NSString stringWithFormat:@"statuses/user_timeline.%@", API_FORMAT];
+    
+	return [self _sendRequestWithMethod:nil path:path queryParameters:nil body:nil 
+                            requestType:MGTwitterPublicTimelineRequest 
+                           responseType:MGTwitterStatuses];
+}
+
+- (NSString *)getMentions
+{
+    NSString *path = [NSString stringWithFormat:@"statuses/mentions.%@", API_FORMAT];
+    
+	return [self _sendRequestWithMethod:nil path:path queryParameters:nil body:nil 
+                            requestType:MGTwitterPublicTimelineRequest 
+                           responseType:MGTwitterStatuses];
+}
 
 #pragma mark -
 
 
-- (NSString *)getFollowedTimelineSinceID:(unsigned long)sinceID startingAtPage:(int)page count:(int)count
+- (NSString *)getFollowedTimelineSinceID:(NSString *)sinceID startingAtPage:(int)page count:(int)count
 {
     return [self getFollowedTimelineSinceID:sinceID withMaximumID:0 startingAtPage:page count:count];
 }
 
-- (NSString *)getFollowedTimelineSinceID:(unsigned long)sinceID withMaximumID:(unsigned long)maxID startingAtPage:(int)page count:(int)count
+- (NSString *)getFollowedTimelineSinceID:(NSString *)sinceID withMaximumID:(NSString *)maxID startingAtPage:(int)page count:(int)count
 {
 	NSString *path = [NSString stringWithFormat:@"statuses/friends_timeline.%@", API_FORMAT];
 
     NSMutableDictionary *params = [NSMutableDictionary dictionaryWithCapacity:0];
-    if (sinceID > 0) {
-        [params setObject:[NSString stringWithFormat:@"%u", sinceID] forKey:@"since_id"];
+    if (sinceID != nil) {
+        [params setObject:[NSString stringWithFormat:@"%@", sinceID] forKey:@"since_id"];
     }
-    if (maxID > 0) {
-        [params setObject:[NSString stringWithFormat:@"%u", maxID] forKey:@"max_id"];
+    if (maxID != nil) {
+        [params setObject:[NSString stringWithFormat:@"%@", maxID] forKey:@"max_id"];
     }
     if (page > 0) {
         [params setObject:[NSString stringWithFormat:@"%d", page] forKey:@"page"];
@@ -961,22 +987,22 @@
 #pragma mark -
 
 
-- (NSString *)getUserTimelineFor:(NSString *)username sinceID:(unsigned long)sinceID startingAtPage:(int)page count:(int)count
+- (NSString *)getUserTimelineFor:(NSString *)username sinceID:(NSString *)sinceID startingAtPage:(int)page count:(int)count
 {
     return [self getUserTimelineFor:username sinceID:sinceID withMaximumID:0 startingAtPage:0 count:count];
 }
 
-- (NSString *)getUserTimelineFor:(NSString *)username sinceID:(unsigned long)sinceID withMaximumID:(unsigned long)maxID startingAtPage:(int)page count:(int)count
+- (NSString *)getUserTimelineFor:(NSString *)username sinceID:(NSString *)sinceID withMaximumID:(NSString *)maxID startingAtPage:(int)page count:(int)count
 {
 	NSString *path = [NSString stringWithFormat:@"statuses/user_timeline.%@", API_FORMAT];
     MGTwitterRequestType requestType = MGTwitterUserTimelineRequest;
     
     NSMutableDictionary *params = [NSMutableDictionary dictionaryWithCapacity:0];
-    if (sinceID > 0) {
-        [params setObject:[NSString stringWithFormat:@"%u", sinceID] forKey:@"since_id"];
+    if (sinceID != nil) {
+        [params setObject:[NSString stringWithFormat:@"%@", sinceID] forKey:@"since_id"];
     }
-    if (maxID > 0) {
-        [params setObject:[NSString stringWithFormat:@"%u", maxID] forKey:@"max_id"];
+    if (maxID != nil) {
+        [params setObject:[NSString stringWithFormat:@"%@", maxID] forKey:@"max_id"];
     }
 	if (page > 0) {
         [params setObject:[NSString stringWithFormat:@"%d", page] forKey:@"page"];
@@ -998,9 +1024,9 @@
 #pragma mark -
 
 
-- (NSString *)getUpdate:(unsigned long)updateID
+- (NSString *)getUpdate:(NSString *)updateID
 {
-    NSString *path = [NSString stringWithFormat:@"statuses/show/%u.%@", updateID, API_FORMAT];
+    NSString *path = [NSString stringWithFormat:@"statuses/show/%@.%@", updateID, API_FORMAT];
     
     return [self _sendRequestWithMethod:nil path:path queryParameters:nil body:nil 
                             requestType:MGTwitterUpdateGetRequest
@@ -1010,11 +1036,11 @@
 
 - (NSString *)sendUpdate:(NSString *)status
 {
-    return [self sendUpdate:status inReplyTo:0];
+    return [self sendUpdate:status inReplyTo:nil];
 }
 
 
-- (NSString *)sendUpdate:(NSString *)status inReplyTo:(unsigned long)updateID
+- (NSString *)sendUpdate:(NSString *)status inReplyTo:(NSString *)updateID
 {
     if (!status) {
         return nil;
@@ -1029,8 +1055,8 @@
     
     NSMutableDictionary *params = [NSMutableDictionary dictionaryWithCapacity:0];
     [params setObject:trimmedText forKey:@"status"];
-    if (updateID > 0) {
-        [params setObject:[NSString stringWithFormat:@"%u", updateID] forKey:@"in_reply_to_status_id"];
+    if (updateID != nil) {
+        [params setObject:updateID forKey:@"in_reply_to_status_id"];
     }
     NSString *body = [self _queryStringWithBase:nil parameters:params prefixed:NO];
     
@@ -1040,6 +1066,13 @@
                            responseType:MGTwitterStatus];
 }
 
+- (NSString *)retweetUpdate:(NSString *)updateID {
+	NSString *path = [NSString stringWithFormat:@"statuses/retweet/%@.%@", updateID, API_FORMAT];
+    
+    return [self _sendRequestWithMethod:nil path:path queryParameters:nil body:nil 
+                            requestType:MGTwitterUpdateGetRequest
+                           responseType:MGTwitterStatus];
+}
 
 #pragma mark -
 
@@ -1049,12 +1082,12 @@
     return [self getRepliesSinceID:0 startingAtPage:page count:0]; // zero means default
 }
 
-- (NSString *)getRepliesSinceID:(unsigned long)sinceID startingAtPage:(int)page count:(int)count
+- (NSString *)getRepliesSinceID:(NSString *)sinceID startingAtPage:(int)page count:(int)count
 {
-    return [self getRepliesSinceID:sinceID withMaximumID:0 startingAtPage:page count:count];
+    return [self getRepliesSinceID:sinceID withMaximumID:nil startingAtPage:page count:count];
 }
 
-- (NSString *)getRepliesSinceID:(unsigned long)sinceID withMaximumID:(unsigned long)maxID startingAtPage:(int)page count:(int)count
+- (NSString *)getRepliesSinceID:(NSString *)sinceID withMaximumID:(NSString *)maxID startingAtPage:(int)page count:(int)count
 {
 // NOTE: identi.ca can't handle mentions URL yet...
 //	NSString *path = [NSString stringWithFormat:@"statuses/mentions.%@", API_FORMAT];
@@ -1062,10 +1095,10 @@
     
     NSMutableDictionary *params = [NSMutableDictionary dictionaryWithCapacity:0];
     if (sinceID > 0) {
-        [params setObject:[NSString stringWithFormat:@"%u", sinceID] forKey:@"since_id"];
+        [params setObject:[NSString stringWithFormat:@"%@", sinceID] forKey:@"since_id"];
     }
-    if (maxID > 0) {
-        [params setObject:[NSString stringWithFormat:@"%u", maxID] forKey:@"max_id"];
+    if (maxID != nil) {
+        [params setObject:[NSString stringWithFormat:@"%@", maxID] forKey:@"max_id"];
     }
     if (page > 0) {
         [params setObject:[NSString stringWithFormat:@"%d", page] forKey:@"page"];
@@ -1083,9 +1116,9 @@
 #pragma mark -
 
 
-- (NSString *)deleteUpdate:(unsigned long)updateID
+- (NSString *)deleteUpdate:(NSString *)updateID
 {
-    NSString *path = [NSString stringWithFormat:@"statuses/destroy/%u.%@", updateID, API_FORMAT];
+    NSString *path = [NSString stringWithFormat:@"statuses/destroy/%@.%@", updateID, API_FORMAT];
     
     return [self _sendRequestWithMethod:HTTP_POST_METHOD path:path queryParameters:nil body:nil 
                             requestType:MGTwitterUpdateDeleteRequest
@@ -1182,21 +1215,21 @@
 #pragma mark Direct Message methods
 
 
-- (NSString *)getDirectMessagesSinceID:(unsigned long)sinceID startingAtPage:(int)page
+- (NSString *)getDirectMessagesSinceID:(NSString *)sinceID startingAtPage:(int)page
 {
     return [self getDirectMessagesSinceID:sinceID withMaximumID:0 startingAtPage:page count:0];
 }
 
-- (NSString *)getDirectMessagesSinceID:(unsigned long)sinceID withMaximumID:(unsigned long)maxID startingAtPage:(int)page count:(int)count
+- (NSString *)getDirectMessagesSinceID:(NSString *)sinceID withMaximumID:(NSString *)maxID startingAtPage:(int)page count:(int)count
 {
     NSString *path = [NSString stringWithFormat:@"direct_messages.%@", API_FORMAT];
     
     NSMutableDictionary *params = [NSMutableDictionary dictionaryWithCapacity:0];
-    if (sinceID > 0) {
-        [params setObject:[NSString stringWithFormat:@"%u", sinceID] forKey:@"since_id"];
+    if (sinceID != nil) {
+        [params setObject:[NSString stringWithFormat:@"%@", sinceID] forKey:@"since_id"];
     }
-    if (maxID > 0) {
-        [params setObject:[NSString stringWithFormat:@"%u", maxID] forKey:@"max_id"];
+    if (maxID != nil) {
+        [params setObject:[NSString stringWithFormat:@"%@", maxID] forKey:@"max_id"];
     }
     if (page > 0) {
         [params setObject:[NSString stringWithFormat:@"%d", page] forKey:@"page"];
@@ -1213,21 +1246,21 @@
 
 #pragma mark -
 
-- (NSString *)getSentDirectMessagesSinceID:(unsigned long)sinceID startingAtPage:(int)page
+- (NSString *)getSentDirectMessagesSinceID:(NSString *)sinceID startingAtPage:(int)page
 {
     return [self getSentDirectMessagesSinceID:sinceID withMaximumID:0 startingAtPage:page count:0];
 }
 
-- (NSString *)getSentDirectMessagesSinceID:(unsigned long)sinceID withMaximumID:(unsigned long)maxID startingAtPage:(int)page count:(int)count
+- (NSString *)getSentDirectMessagesSinceID:(NSString *)sinceID withMaximumID:(NSString *)maxID startingAtPage:(int)page count:(int)count
 {
     NSString *path = [NSString stringWithFormat:@"direct_messages/sent.%@", API_FORMAT];
     
     NSMutableDictionary *params = [NSMutableDictionary dictionaryWithCapacity:0];
-    if (sinceID > 0) {
-        [params setObject:[NSString stringWithFormat:@"%u", sinceID] forKey:@"since_id"];
+    if (sinceID != nil) {
+        [params setObject:[NSString stringWithFormat:@"%@", sinceID] forKey:@"since_id"];
     }
-    if (maxID > 0) {
-        [params setObject:[NSString stringWithFormat:@"%u", maxID] forKey:@"max_id"];
+    if (maxID != nil) {
+        [params setObject:[NSString stringWithFormat:@"%@", maxID] forKey:@"max_id"];
     }
     if (page > 0) {
         [params setObject:[NSString stringWithFormat:@"%d", page] forKey:@"page"];
@@ -1270,9 +1303,9 @@
 }
 
 
-- (NSString *)deleteDirectMessage:(unsigned long)updateID
+- (NSString *)deleteDirectMessage:(NSString *)updateID
 {
-    NSString *path = [NSString stringWithFormat:@"direct_messages/destroy/%u.%@", updateID, API_FORMAT];
+    NSString *path = [NSString stringWithFormat:@"direct_messages/destroy/%@.%@", updateID, API_FORMAT];
     
     return [self _sendRequestWithMethod:HTTP_POST_METHOD path:path queryParameters:nil body:nil 
                             requestType:MGTwitterDirectMessageDeleteRequest 
