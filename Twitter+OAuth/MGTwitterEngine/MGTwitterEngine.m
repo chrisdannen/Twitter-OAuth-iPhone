@@ -21,6 +21,9 @@
 	#import "MGTwitterUsersYAJLParser.h"
 	#import "MGTwitterMiscYAJLParser.h"
 	#import "MGTwitterSearchYAJLParser.h"
+#elif SBJSON_AVAILABLE
+    #define API_FORMAT @"json"
+    #import "JSON.h"
 #else
 	#define API_FORMAT @"xml"
 
@@ -37,7 +40,7 @@
 	#endif
 #endif
 
-#define TWITTER_DOMAIN          @"twitter.com"
+#define TWITTER_DOMAIN          @"api.twitter.com/1"
 #if YAJL_AVAILABLE
 	#define TWITTER_SEARCH_DOMAIN	@"search.twitter.com"
 #endif
@@ -97,7 +100,7 @@
 
 - (MGTwitterEngine *)initWithDelegate:(NSObject *)newDelegate
 {
-    if (self = [super init]) {
+    if ((self = [super init])) {
         _delegate = newDelegate; // deliberately weak reference
         _connections = [[NSMutableDictionary alloc] initWithCapacity:0];
         _clientName = [DEFAULT_CLIENT_NAME retain];
@@ -190,7 +193,7 @@
 		NSHTTPCookieStorage *cookieStorage = [NSHTTPCookieStorage sharedHTTPCookieStorage];
 		NSEnumerator *enumerator = [[cookieStorage cookiesForURL:url] objectEnumerator];
 		NSHTTPCookie *cookie = nil;
-		while (cookie = [enumerator nextObject]) {
+		while ((cookie = [enumerator nextObject])) {
 			[cookieStorage deleteCookie:cookie];
 		}
 	}
@@ -635,6 +638,27 @@
        default:
             break;
     }
+}
+#elif SBJSON_AVAILABLE
+- (void)_parseDataForConnection:(MGTwitterHTTPURLConnection *)connection
+{
+    NSString *identifier = [[[connection identifier] copy] autorelease];
+    NSData *jsonData = [[[connection data] copy] autorelease];
+    MGTwitterResponseType responseType = [connection responseType];
+	NSString *json_string = [[[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding] autorelease];
+    
+    id json = [json_string JSONValue];
+
+	NSArray *parsedObjects;
+	
+	if ([json isKindOfClass:[NSArray class]]) {
+		parsedObjects = [NSArray arrayWithArray:json];
+	} else if ([json isKindOfClass:[NSDictionary class]]) {
+		parsedObjects = [NSArray arrayWithObject:json];
+	}
+
+	[self parsingSucceededForRequest:identifier ofResponseType:responseType withParsedObjects:parsedObjects];
+	
 }
 #else
 - (void)_parseDataForConnection:(MGTwitterHTTPURLConnection *)connection

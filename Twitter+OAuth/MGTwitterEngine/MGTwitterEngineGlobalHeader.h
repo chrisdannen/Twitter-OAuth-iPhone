@@ -49,3 +49,5 @@
 */
 
 #define YAJL_AVAILABLE 0
+
+#define SBJSON_AVAILABLE 0
