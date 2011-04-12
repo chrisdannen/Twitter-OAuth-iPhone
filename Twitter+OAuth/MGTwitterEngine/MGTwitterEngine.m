@@ -1060,11 +1060,20 @@
 
 - (NSString *)sendUpdate:(NSString *)status
 {
-    return [self sendUpdate:status inReplyTo:nil];
+    return [self sendUpdate:status inReplyTo:nil withParams:nil];
 }
 
-
 - (NSString *)sendUpdate:(NSString *)status inReplyTo:(NSString *)updateID
+{
+    return [self sendUpdate:status inReplyTo:updateID withParams:nil];
+}
+
+- (NSString *)sendUpdate:(NSString *)status withParams:(NSMutableDictionary*)params
+{
+    return [self sendUpdate:status inReplyTo:nil withParams:params];
+}
+
+- (NSString *)sendUpdate:(NSString *)status inReplyTo:(NSString *)updateID withParams:(NSMutableDictionary*)params
 {
     if (!status) {
         return nil;
@@ -1077,7 +1086,10 @@
         trimmedText = [trimmedText substringToIndex:MAX_MESSAGE_LENGTH];
     }
     
-    NSMutableDictionary *params = [NSMutableDictionary dictionaryWithCapacity:0];
+    if (nil == params) {
+        params = [NSMutableDictionary dictionaryWithCapacity:0];
+    }
+    
     [params setObject:trimmedText forKey:@"status"];
     if (updateID != nil) {
         [params setObject:updateID forKey:@"in_reply_to_status_id"];
@@ -1596,6 +1608,151 @@
 	NSString *path = [NSString stringWithFormat:@"help/downtime_schedule.%@", API_FORMAT];
 	
 	return [self _sendRequestWithMethod:nil path:path queryParameters:nil body:nil 
+                            requestType:MGTwitterAccountRequest
+                           responseType:MGTwitterMiscellaneous];
+}
+
+- (NSString *)_sendStandardRequestWithMethod:(NSString *)method 
+                                path:(NSString *)path 
+                     queryParameters:(NSDictionary *)params 
+                                body:(NSString *)body 
+                         requestType:(MGTwitterRequestType)requestType 
+                        responseType:(MGTwitterResponseType)responseType
+{
+    // Construct appropriate URL string.
+    NSString *fullPath = path;
+    if (params) {
+        fullPath = [self _queryStringWithBase:fullPath parameters:params prefixed:YES];
+    }
+    
+#if YAJL_AVAILABLE
+	NSString *domain = nil;
+	NSString *connectionType = nil;
+	if (requestType == MGTwitterSearchRequest || requestType == MGTwitterSearchCurrentTrendsRequest)
+	{
+		domain = _searchDomain;
+		connectionType = @"http";
+	}
+	else
+	{
+		domain = _APIDomain;
+		if (_secureConnection)
+		{
+			connectionType = @"https";
+		}
+		else
+		{
+			connectionType = @"http";
+		}
+	}
+#else
+	NSString *domain = _APIDomain;
+	NSString *connectionType = nil;
+	if (_secureConnection)
+	{
+		connectionType = @"https";
+	}
+	else
+	{
+		connectionType = @"http";
+	}
+#endif
+	
+#if SET_AUTHORIZATION_IN_HEADER
+    NSString *urlString = [NSString stringWithFormat:@"%@://%@/%@", 
+                           connectionType,
+                           domain, fullPath];
+#else    
+    NSString *urlString = [NSString stringWithFormat:@"%@://%@:%@@%@/%@", 
+                           connectionType, 
+                           [self _encodeString:_username], [self _encodeString:_password], 
+                           domain, fullPath];
+#endif
+    
+    NSURL *finalURL = [NSURL URLWithString:urlString];
+    if (!finalURL) {
+        return nil;
+    }
+    
+#if DEBUG
+    if (YES) {
+		NSLog(@"MGTwitterEngine: finalURL = %@", finalURL);
+	}
+#endif
+    
+    // Construct an NSMutableURLRequest for the URL and set appropriate request method.
+    NSMutableURLRequest *theRequest = [NSMutableURLRequest requestWithURL:finalURL 
+                                                              cachePolicy:NSURLRequestReloadIgnoringCacheData 
+                                                          timeoutInterval:URL_REQUEST_TIMEOUT];
+    if (method) {
+        [theRequest setHTTPMethod:method];
+    }
+    [theRequest setHTTPShouldHandleCookies:NO];
+    
+    // Set headers for client information, for tracking purposes at Twitter.
+    [theRequest setValue:_clientName    forHTTPHeaderField:@"X-Twitter-Client"];
+    [theRequest setValue:_clientVersion forHTTPHeaderField:@"X-Twitter-Client-Version"];
+    [theRequest setValue:_clientURL     forHTTPHeaderField:@"X-Twitter-Client-URL"];
+    
+#if SET_AUTHORIZATION_IN_HEADER
+	if ([self username] && [self password]) {
+		// Set header for HTTP Basic authentication explicitly, to avoid problems with proxies and other intermediaries
+		NSString *authStr = [NSString stringWithFormat:@"%@:%@", [self username], [self password]];
+		NSData *authData = [authStr dataUsingEncoding:NSASCIIStringEncoding];
+		NSString *authValue = [NSString stringWithFormat:@"Basic %@", [authData base64EncodingWithLineLength:80]];
+		[theRequest setValue:authValue forHTTPHeaderField:@"Authorization"];
+	}
+#endif
+    
+    // Set the request body if this is a POST request.
+    BOOL isPOST = (method && [method isEqualToString:HTTP_POST_METHOD]);
+    if (isPOST) {
+        // Set request body, if specified (hopefully so), with 'source' parameter if appropriate.
+        NSString *finalBody = @"";
+		if (body) {
+			finalBody = [finalBody stringByAppendingString:body];
+		}
+        if (_clientSourceToken) {
+            finalBody = [finalBody stringByAppendingString:[NSString stringWithFormat:@"%@source=%@", 
+                                                            (body) ? @"&" : @"?" , 
+                                                            _clientSourceToken]];
+        }
+        
+        if (finalBody) {
+            [theRequest setHTTPBody:[finalBody dataUsingEncoding:NSUTF8StringEncoding]];
+#if DEBUG
+			if (YES) {
+				NSLog(@"MGTwitterEngine: finalBody = %@", finalBody);
+			}
+#endif
+        }
+    }
+    
+    
+    // Create a connection using this request, with the default timeout and caching policy, 
+    // and appropriate Twitter request and response types for parsing and error reporting.
+    MGTwitterHTTPURLConnection *connection;
+    connection = [[MGTwitterHTTPURLConnection alloc] initWithRequest:theRequest 
+                                                            delegate:self 
+                                                         requestType:requestType 
+                                                        responseType:responseType];
+    
+    if (!connection) {
+        return nil;
+    } else {
+        [_connections setObject:connection forKey:[connection identifier]];
+        [connection release];
+    }
+    
+    return [connection identifier];
+}
+
+// Geo
+- (NSString *)geoResultsForPath:(NSString *)path withParams:(NSDictionary*)params
+{
+    NSString *path1 = [NSString stringWithFormat:@"geo/%@.%@", path, API_FORMAT];
+	
+	return [self _sendStandardRequestWithMethod:nil path:path1 queryParameters:params body:nil 
                             requestType:MGTwitterAccountRequest
                            responseType:MGTwitterMiscellaneous];
 }

@@ -100,6 +100,8 @@
 - (NSString *)getUpdate:(NSString *)updateID; // statuses/show
 - (NSString *)sendUpdate:(NSString *)status; // statuses/update
 - (NSString *)sendUpdate:(NSString *)status inReplyTo:(NSString *)updateID; // statuses/update
+- (NSString *)sendUpdate:(NSString *)status  withParams:(NSMutableDictionary*)params; // statuses/update
+- (NSString *)sendUpdate:(NSString *)status inReplyTo:(NSString *)updateID  withParams:(NSMutableDictionary*)params; // statuses/update
 - (NSString *)retweetUpdate:(NSString *)updateID;
 
 - (NSString *)getRepliesStartingAtPage:(int)pageNum; // statuses/mentions
@@ -184,6 +186,9 @@
 - (NSString *)testService; // help/test
 
 - (NSString *)getDowntimeSchedule; // help/downtime_schedule (undocumented)
+
+// Geo
+- (NSString *)geoResultsForPath:(NSString *)path withParams:(NSDictionary*)params;
 
 
 #pragma mark Search API methods
